@@ -5,11 +5,13 @@ import (
 	"github.com/liyuanwu2020/msgo"
 	"html/template"
 	"log"
+	"net/http"
 	"time"
 )
 
 type tplData struct {
-	Title string
+	Title string `xml:"title" json:"title"`
+	Age   int    `xml:"age" json:"age"`
 }
 
 func ShowTime() string {
@@ -38,7 +40,9 @@ func main() {
 	g := engine.Group("user")
 
 	g.Get("/home", func(ctx *msgo.Context) {
-		err := ctx.Template("index.html", &tplData{Title: "个人中心"})
+		//err := ctx.Template("index.html", &tplData{Title: "个人中心"})
+		//err := ctx.JSON(http.StatusOK, &tplData{Title: "个人中心"})
+		err := ctx.XML(http.StatusOK, &tplData{Title: "个人中心", Age: 20})
 		log.Println(err)
 	})
 

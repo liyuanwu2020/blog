@@ -40,12 +40,22 @@ func main() {
 
 	g.Get("/toRedirect", func(ctx *msgo.Context) {
 		log.Println("重定向开始")
-		ctx.Redirect(http.StatusFound, "/user/home")
+		err := ctx.Redirect(http.StatusFound, "/user/home")
+		if err != nil {
+			log.Println("重定向error", err)
+		}
 		log.Println("重定向不执行?")
 	})
 
 	g.Get("/home", func(ctx *msgo.Context) {
 		var err error
+		values, ok := ctx.GetQueryArray("id")
+		log.Println(values, ok)
+		value := ctx.GetQuery("sort")
+		log.Println(value)
+		defer func() {
+			log.Println("clear query Cache")
+		}()
 		//err = ctx.HTML(http.StatusOK, "<h2>HTML</h2>")
 		err = ctx.Template("index.html", &tplData{Title: "个人中心"})
 		//err = ctx.JSON(http.StatusOK, &tplData{Title: "个人中心"})

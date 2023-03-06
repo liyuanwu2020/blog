@@ -8,11 +8,6 @@ import (
 	"time"
 )
 
-type tplData struct {
-	Title string `xml:"title" json:"title"`
-	Age   int    `xml:"age" json:"age"`
-}
-
 func ShowTime() string {
 	return time.Now().String()
 }
@@ -49,35 +44,31 @@ func main() {
 
 	g.Get("/home", func(ctx *msgo.Context) {
 		var err error
-		values, ok := ctx.GetQueryArray("id")
-		log.Println(values, ok)
-		value := ctx.GetQuery("sort")
-		log.Println(value)
-		defer func() {
-			log.Println("clear query Cache")
-		}()
+		query, _ := ctx.GetMapQuery("user")
 		//err = ctx.HTML(http.StatusOK, "<h2>HTML</h2>")
-		err = ctx.Template("index.html", &tplData{Title: "个人中心"})
-		//err = ctx.JSON(http.StatusOK, &tplData{Title: "个人中心"})
+		//err = ctx.Template("index.html", &tplData{Title: "个人中心"})
+		err = ctx.JSON(http.StatusOK, query)
 		//err = ctx.XML(http.StatusOK, &tplData{Title: "个人中心", Age: 20})
 		//ctx.File("tpl/2023课程表.xlsx")
 		//ctx.FileAttachment("tpl/2023课程表.xlsx", "myCourse.xlsx")
 		//ctx.FileFromFS("2023课程表.xlsx", http.Dir("tpl"))
 		//err = ctx.String(http.StatusOK, "%s的%d课程表.xlsx", "liyuanwu", 2023)
 		//err = ctx.String(http.StatusOK, "%s 是由 %s 制作", "goweb框架", "go微服务框架")
-		log.Println(err)
+		if err != nil {
+			log.Println(err)
+		}
 	}, func(handlerFunc msgo.HandlerFunc) msgo.HandlerFunc {
 		return func(ctx *msgo.Context) {
 			handlerFunc(ctx)
-			log.Println("方法级别 MiddleHandler")
+			//log.Println("方法级别 MiddleHandler")
 		}
 	})
 
 	g.Use(func(handlerFunc msgo.HandlerFunc) msgo.HandlerFunc {
 		return func(ctx *msgo.Context) {
-			log.Println("组级别 PreMiddleHandler")
+			//log.Println("组级别 PreMiddleHandler")
 			handlerFunc(ctx)
-			log.Println("组级别 PostMiddleHandler")
+			//log.Println("组级别 PostMiddleHandler")
 		}
 	})
 

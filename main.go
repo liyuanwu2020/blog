@@ -46,14 +46,15 @@ func main() {
 
 	g.Get("/home", func(ctx *msgo.Context) {
 		var err error
-		//err := ctx.Template("index.html", &tplData{Title: "个人中心"})
-		//err := ctx.JSON(http.StatusOK, &tplData{Title: "个人中心"})
-		//err := ctx.XML(http.StatusOK, &tplData{Title: "个人中心", Age: 20})
+		//err = ctx.HTML(http.StatusOK, "<h2>HTML</h2>")
+		err = ctx.Template("index.html", &tplData{Title: "个人中心"})
+		//err = ctx.JSON(http.StatusOK, &tplData{Title: "个人中心"})
+		//err = ctx.XML(http.StatusOK, &tplData{Title: "个人中心", Age: 20})
 		//ctx.File("tpl/2023课程表.xlsx")
 		//ctx.FileAttachment("tpl/2023课程表.xlsx", "myCourse.xlsx")
 		//ctx.FileFromFS("2023课程表.xlsx", http.Dir("tpl"))
 		//err = ctx.String(http.StatusOK, "%s的%d课程表.xlsx", "liyuanwu", 2023)
-		err = ctx.String(http.StatusOK, "%s 是由 %s 制作", "goweb框架", "go微服务框架")
+		//err = ctx.String(http.StatusOK, "%s 是由 %s 制作", "goweb框架", "go微服务框架")
 		log.Println(err)
 	}, func(handlerFunc msgo.HandlerFunc) msgo.HandlerFunc {
 		return func(ctx *msgo.Context) {

@@ -14,7 +14,7 @@ func ShowTime() string {
 
 type User struct {
 	Name    string   `json:"name" required:"true"`
-	Age     int      `json:"age"`
+	Age     int      `json:"age" validate:"required,max=50,min=18"`
 	Address []string `json:"address"`
 	Class   string   `json:"class"`
 }

@@ -14,10 +14,10 @@ func ShowTime() string {
 }
 
 type User struct {
-	Name    string   `json:"name" required:"true"`
-	Age     int      `json:"age" validate:"required,max=50,min=18"`
-	Address []string `json:"address"`
-	Class   string   `json:"class"`
+	Name    string   `json:"name" xml:"name" required:"true"`
+	Age     int      `json:"age" xml:"age" validate:"required,max=50,min=18"`
+	Address []string `json:"address" xml:"address"`
+	Class   string   `json:"class" xml:"class"`
 }
 
 func main() {
@@ -45,13 +45,19 @@ func main() {
 
 	g.Any("/home", func(ctx *msgo.Context) {
 		var err error
-		user := make([]*User, 0)
-		ctx.IsValidate = true
+		user := &User{}
 		ctx.StructValidator = validator.Validator
-		err = ctx.BindJson(&user)
+		err = ctx.BindXML(&user)
 		if err != nil {
-			log.Println("处理JSON错误", err)
+			log.Println("处理XML错误", err)
 		}
+		//user := make([]*User, 0)
+		//ctx.IsValidate = true
+		//ctx.StructValidator = validator.Validator
+		//err = ctx.BindJson(&user)
+		//if err != nil {
+		//	log.Println("处理JSON错误", err)
+		//}
 		//query, _ := ctx.GetAllPost()
 		//log.Println(query)
 		//avatar, fErr := ctx.FormFile("avatar")

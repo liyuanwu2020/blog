@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/liyuanwu2020/msgo"
+	"github.com/liyuanwu2020/msgo/validator"
 	"html/template"
 	"log"
 	"net/http"
@@ -20,7 +21,8 @@ type User struct {
 }
 
 func main() {
-	//1.创建引擎 (创建上下文)
+	//1.创建引擎
+	//1.1 创建上下文.参数处理
 	//2.添加模板函数 && 解析模板
 	//3.使用引擎创建组
 	//4.使用组创建路由
@@ -45,7 +47,8 @@ func main() {
 		var err error
 		user := make([]*User, 0)
 		ctx.IsValidate = true
-		err = ctx.DealJson(&user)
+		ctx.StructValidator = validator.Validator
+		err = ctx.BindJson(&user)
 		if err != nil {
 			log.Println("处理JSON错误", err)
 		}

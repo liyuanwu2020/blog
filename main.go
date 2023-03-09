@@ -2,7 +2,6 @@ package main
 
 import (
 	"github.com/liyuanwu2020/msgo"
-	"github.com/liyuanwu2020/msgo/validator"
 	"html/template"
 	"log"
 	"net/http"
@@ -46,11 +45,13 @@ func main() {
 	g.Any("/home", func(ctx *msgo.Context) {
 		var err error
 		user := &User{}
-		ctx.StructValidator = validator.Validator
-		err = ctx.BindXML(&user)
-		if err != nil {
-			log.Println("处理XML错误", err)
-		}
+		//ctx.StructValidator = validator.Validator
+		//err = ctx.BindXML(&user)
+		//log.Println(user)
+		//if err != nil {
+		//	log.Println("处理XML错误", err)
+		//}
+
 		//user := make([]*User, 0)
 		//ctx.IsValidate = true
 		//ctx.StructValidator = validator.Validator
@@ -58,8 +59,8 @@ func main() {
 		//if err != nil {
 		//	log.Println("处理JSON错误", err)
 		//}
-		//query, _ := ctx.GetAllPost()
-		//log.Println(query)
+		query, _ := ctx.GetAllPost()
+		log.Println(query)
 		//avatar, fErr := ctx.FormFile("avatar")
 		//if fErr != nil {
 		//	log.Println("获取上传文件错误", err)
@@ -72,11 +73,10 @@ func main() {
 		//err = ctx.HTML(http.StatusOK, "<h2>HTML</h2>")
 		//err = ctx.Template("index.html", &tplData{Title: "个人中心"})
 		err = ctx.JSON(http.StatusOK, user)
-		//err = ctx.XML(http.StatusOK, &tplData{Title: "个人中心", Age: 20})
+		//err = ctx.XML(http.StatusOK, &user)
 		//ctx.File("tpl/2023课程表.xlsx")
 		//ctx.FileAttachment("tpl/2023课程表.xlsx", "myCourse.xlsx")
 		//ctx.FileFromFS("2023课程表.xlsx", http.Dir("tpl"))
-		//err = ctx.String(http.StatusOK, "%s的%d课程表.xlsx", "liyuanwu", 2023)
 		//err = ctx.String(http.StatusOK, "%s 是由 %s 制作", "goweb框架", "go微服务框架")
 		if err != nil {
 			log.Println(err)
@@ -87,14 +87,9 @@ func main() {
 			//log.Println("方法级别 MiddleHandler")
 		}
 	})
+	//先进后出
+	g.Use(msgo.Logging)
 
-	g.Use(func(handlerFunc msgo.HandlerFunc) msgo.HandlerFunc {
-		return func(ctx *msgo.Context) {
-			//log.Println("组级别 PreMiddleHandler")
-			handlerFunc(ctx)
-			//log.Println("组级别 PostMiddleHandler")
-		}
-	})
 	log.Println("engine start")
 	engine.Run()
 }

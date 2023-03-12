@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/liyuanwu2020/msgo"
+	mslog "github.com/liyuanwu2020/msgo/log"
 	"html/template"
 	"log"
 	"net/http"
@@ -43,6 +44,17 @@ func main() {
 	})
 
 	g.Any("/home", func(ctx *msgo.Context) {
+
+		Logger := mslog.Default()
+		Logger.Formatter = mslog.JsonFormat
+		Logger.SetLogPath("./logs")
+		Logger.Info("1")
+		Logger.Debug("2")
+		Logger.WithFields(mslog.Fields{
+			"params": "hello",
+			"id":     "20",
+		}).Error("3")
+
 		var err error
 		user := &User{}
 		//ctx.StructValidator = validator.Validator
@@ -87,6 +99,7 @@ func main() {
 			//log.Println("方法级别 MiddleHandler")
 		}
 	})
+
 	//先进后出
 	g.Use(msgo.Logging)
 

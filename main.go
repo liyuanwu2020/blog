@@ -1,10 +1,10 @@
 package main
 
 import (
+	"errors"
 	"github.com/liyuanwu2020/msgo"
 	mslog "github.com/liyuanwu2020/msgo/log"
 	"html/template"
-	"log"
 	"net/http"
 	"time"
 )
@@ -28,71 +28,29 @@ func main() {
 	//4.使用组创建路由
 	//5.启动引擎
 
-	engine := msgo.New()
+	engine := msgo.Default()
 	funcMap := template.FuncMap{"showTime": ShowTime}
 	engine.SetFuncMap(funcMap)
 	engine.LoadTemplate("tpl/*.html")
 	g := engine.Group("user")
-
-	g.Get("/toRedirect", func(ctx *msgo.Context) {
-		log.Println("重定向开始")
-		err := ctx.Redirect(http.StatusFound, "/user/home")
-		if err != nil {
-			log.Println("重定向error", err)
+	//先进后出
+	//g.Use(msgo.Logging, msgo.Recovery)
+	engine.Logger.Formatter = mslog.JsonFormat
+	//engine.Logger.SetLogPath("./logs")
+	engine.RegisterErrorHandler(func(err error) (int, any) {
+		switch e := err.(type) {
+		case *BlogResponse:
+			return http.StatusOK, e.Response()
+		default:
+			return http.StatusInternalServerError, "Internal Server Error"
 		}
-		log.Println("重定向不执行?")
 	})
-
 	g.Any("/home", func(ctx *msgo.Context) {
-
-		Logger := mslog.Default()
-		Logger.Formatter = mslog.JsonFormat
-		Logger.SetLogPath("./logs")
-		Logger.Info("1")
-		Logger.Debug("2")
-		Logger.WithFields(mslog.Fields{
-			"params": "hello",
-			"id":     "20",
-		}).Error("3")
-
 		var err error
-		user := &User{}
-		//ctx.StructValidator = validator.Validator
-		//err = ctx.BindXML(&user)
-		//log.Println(user)
-		//if err != nil {
-		//	log.Println("处理XML错误", err)
-		//}
+		//业务主体
+		user, err := login()
+		ctx.HandleWithError(http.StatusOK, user, err)
 
-		//user := make([]*User, 0)
-		//ctx.IsValidate = true
-		//ctx.StructValidator = validator.Validator
-		//err = ctx.BindJson(&user)
-		//if err != nil {
-		//	log.Println("处理JSON错误", err)
-		//}
-		query, _ := ctx.GetAllPost()
-		log.Println(query)
-		//avatar, fErr := ctx.FormFile("avatar")
-		//if fErr != nil {
-		//	log.Println("获取上传文件错误", err)
-		//}
-		//err = ctx.SaveUploadedFile(avatar, "./upload/"+avatar.Filename)
-		//if err != nil {
-		//	log.Println("上传文件错误", err)
-		//}
-
-		//err = ctx.HTML(http.StatusOK, "<h2>HTML</h2>")
-		//err = ctx.Template("index.html", &tplData{Title: "个人中心"})
-		err = ctx.JSON(http.StatusOK, user)
-		//err = ctx.XML(http.StatusOK, &user)
-		//ctx.File("tpl/2023课程表.xlsx")
-		//ctx.FileAttachment("tpl/2023课程表.xlsx", "myCourse.xlsx")
-		//ctx.FileFromFS("2023课程表.xlsx", http.Dir("tpl"))
-		//err = ctx.String(http.StatusOK, "%s 是由 %s 制作", "goweb框架", "go微服务框架")
-		if err != nil {
-			log.Println(err)
-		}
 	}, func(handlerFunc msgo.HandlerFunc) msgo.HandlerFunc {
 		return func(ctx *msgo.Context) {
 			handlerFunc(ctx)
@@ -100,9 +58,43 @@ func main() {
 		}
 	})
 
-	//先进后出
-	g.Use(msgo.Logging)
-
-	log.Println("engine start")
+	engine.Logger.Info("engine start")
 	engine.Run()
+}
+
+type BlogResponse struct {
+	Success bool
+	Code    int
+	Data    any
+	Msg     string
+}
+
+type BlogNoDataError struct {
+	Success bool
+	Code    int
+	Msg     string
+}
+
+func (r *BlogResponse) Error() string {
+	return r.Msg
+}
+
+func (r *BlogResponse) Response() any {
+	if r.Data == nil {
+		return &BlogNoDataError{
+			Success: r.Success,
+			Code:    r.Code,
+			Msg:     r.Msg,
+		}
+	}
+	return r
+}
+
+func login() (*BlogResponse, error) {
+	return &BlogResponse{
+		Success: false,
+		Code:    1003,
+		Data:    nil,
+		Msg:     "ok",
+	}, errors.New("账号密码错误")
 }

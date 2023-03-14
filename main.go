@@ -4,8 +4,11 @@ import (
 	"errors"
 	"github.com/liyuanwu2020/msgo"
 	mslog "github.com/liyuanwu2020/msgo/log"
+	"github.com/liyuanwu2020/msgo/mspool"
 	"html/template"
+	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -21,6 +24,17 @@ type User struct {
 }
 
 func main() {
+	arr := []int{1, 2, 3, 4}
+	log.Println(arr)
+	i := 2
+	start := 0
+	for index, v := range arr {
+		if index != i {
+			arr[start] = v
+			start++
+		}
+	}
+	log.Println(arr[:start])
 	//1.创建引擎
 	//1.1 创建上下文.参数处理
 	//2.添加模板函数 && 解析模板
@@ -91,6 +105,34 @@ func (r *BlogResponse) Response() any {
 }
 
 func login() (*BlogResponse, error) {
+
+	pool, _ := mspool.NewPool(3)
+	t := time.Now().UnixMilli()
+	var wg sync.WaitGroup
+	wg.Add(4)
+	pool.Submit(func() {
+		time.Sleep(time.Second)
+		log.Println("1")
+		wg.Done()
+	})
+	pool.Submit(func() {
+		time.Sleep(time.Second)
+		log.Println("2")
+		wg.Done()
+	})
+	pool.Submit(func() {
+		time.Sleep(time.Second)
+		log.Println("3")
+		wg.Done()
+	})
+	pool.Submit(func() {
+		time.Sleep(time.Second)
+		log.Println("4")
+		wg.Done()
+	})
+	wg.Wait()
+	log.Printf("time: %v", time.Now().UnixMilli()-t)
+
 	return &BlogResponse{
 		Success: false,
 		Code:    1003,

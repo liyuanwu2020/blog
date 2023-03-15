@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"github.com/liyuanwu2020/msgo"
-	mslog "github.com/liyuanwu2020/msgo/log"
+	mslog "github.com/liyuanwu2020/msgo/mslog"
 	"github.com/liyuanwu2020/msgo/mspool"
 	"html/template"
 	"log"
@@ -24,17 +24,6 @@ type User struct {
 }
 
 func main() {
-	arr := []int{1, 2, 3, 4}
-	log.Println(arr)
-	i := 2
-	start := 0
-	for index, v := range arr {
-		if index != i {
-			arr[start] = v
-			start++
-		}
-	}
-	log.Println(arr[:start])
 	//1.创建引擎
 	//1.1 创建上下文.参数处理
 	//2.添加模板函数 && 解析模板
@@ -68,7 +57,7 @@ func main() {
 	}, func(handlerFunc msgo.HandlerFunc) msgo.HandlerFunc {
 		return func(ctx *msgo.Context) {
 			handlerFunc(ctx)
-			//log.Println("方法级别 MiddleHandler")
+			//mslog.Println("方法级别 MiddleHandler")
 		}
 	})
 
@@ -111,22 +100,23 @@ func login() (*BlogResponse, error) {
 	var wg sync.WaitGroup
 	wg.Add(4)
 	pool.Submit(func() {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 		log.Println("1")
 		wg.Done()
 	})
 	pool.Submit(func() {
-		time.Sleep(time.Second)
+		defer wg.Done()
+		time.Sleep(time.Second * 2)
 		log.Println("2")
-		wg.Done()
+		panic("oh no")
 	})
 	pool.Submit(func() {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 		log.Println("3")
 		wg.Done()
 	})
 	pool.Submit(func() {
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * 2)
 		log.Println("4")
 		wg.Done()
 	})

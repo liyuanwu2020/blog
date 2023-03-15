@@ -35,6 +35,11 @@ func main() {
 	funcMap := template.FuncMap{"showTime": ShowTime}
 	engine.SetFuncMap(funcMap)
 	engine.LoadTemplate("tpl/*.html")
+	auth := &msgo.Accounts{
+		Users: make(map[string]string),
+	}
+	auth.Users["mszlu"] = "123456"
+	engine.Use(auth.BasicAuth)
 	g := engine.Group("user")
 	//先进后出
 	//g.Use(msgo.Logging, msgo.Recovery)
@@ -48,10 +53,26 @@ func main() {
 			return http.StatusInternalServerError, "Internal Server Error"
 		}
 	})
+
+	g.Any("/login", func(ctx *msgo.Context) {
+		data := struct {
+			Username string
+			Passwd   string
+		}{
+			"mszlu",
+			"123456",
+		}
+		ctx.Logger.Info(msgo.BasicAuth(data.Username, data.Passwd))
+		ctx.JSON(http.StatusOK, data)
+	})
 	g.Any("/home", func(ctx *msgo.Context) {
 		var err error
 		//业务主体
-		user, err := login()
+		//user, err := login()
+		user := &User{
+			Name: "xiaoli",
+			Age:  20,
+		}
 		ctx.HandleWithError(http.StatusOK, user, err)
 
 	}, func(handlerFunc msgo.HandlerFunc) msgo.HandlerFunc {
@@ -62,7 +83,8 @@ func main() {
 	})
 
 	engine.Logger.Info("engine start")
-	engine.Run()
+	//engine.Run()
+	engine.RunTLS(":8088", "key/server.pem", "key/server.key")
 }
 
 type BlogResponse struct {

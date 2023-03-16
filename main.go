@@ -5,6 +5,7 @@ import (
 	"github.com/liyuanwu2020/msgo"
 	mslog "github.com/liyuanwu2020/msgo/mslog"
 	"github.com/liyuanwu2020/msgo/mspool"
+	"github.com/liyuanwu2020/msgo/token"
 	"html/template"
 	"log"
 	"net/http"
@@ -53,17 +54,28 @@ func main() {
 			return http.StatusInternalServerError, "Internal Server Error"
 		}
 	})
-
+	data := struct {
+		Username string
+		Passwd   string
+	}{
+		"mszlu",
+		"123456",
+	}
+	mslog.Default().Info(msgo.BasicAuth(data.Username, data.Passwd))
 	g.Any("/login", func(ctx *msgo.Context) {
-		data := struct {
-			Username string
-			Passwd   string
-		}{
-			"mszlu",
-			"123456",
+
+		jwt := &token.JwtHandler{}
+		jwt.Key = []byte("abc")
+		jwt.SendCookie = true
+		jwt.Timeout = 10 * time.Minute
+		jwt.Authenticator = func(ctx *msgo.Context) (map[string]any, error) {
+			d := make(map[string]any)
+			d["userId"] = 100
+			return d, nil
 		}
-		ctx.Logger.Info(msgo.BasicAuth(data.Username, data.Passwd))
-		ctx.JSON(http.StatusOK, data)
+		token, err := jwt.LoginHandler(ctx)
+		mslog.Default().Error(err)
+		ctx.JSON(http.StatusOK, token)
 	})
 	g.Any("/home", func(ctx *msgo.Context) {
 		var err error

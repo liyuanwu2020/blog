@@ -40,7 +40,7 @@ func main() {
 		Users: make(map[string]string),
 	}
 	auth.Users["mszlu"] = "123456"
-	engine.Use(auth.BasicAuth)
+	//engine.Use(auth.BasicAuth)
 	g := engine.Group("user")
 	//先进后出
 	//g.Use(msgo.Logging, msgo.Recovery)
@@ -61,11 +61,12 @@ func main() {
 		"mszlu",
 		"123456",
 	}
-	mslog.Default().Info(msgo.BasicAuth(data.Username, data.Passwd))
+	engine.Logger.Info(msgo.BasicAuth(data.Username, data.Passwd))
 	g.Any("/login", func(ctx *msgo.Context) {
 
 		jwt := &token.JwtHandler{}
 		jwt.Key = []byte("abc")
+		jwt.RefreshKey = "token"
 		jwt.SendCookie = true
 		jwt.Timeout = 10 * time.Minute
 		jwt.Authenticator = func(ctx *msgo.Context) (map[string]any, error) {
@@ -74,8 +75,15 @@ func main() {
 			return d, nil
 		}
 		token, err := jwt.LoginHandler(ctx)
-		mslog.Default().Error(err)
-		ctx.JSON(http.StatusOK, token)
+
+		if err != nil {
+			ctx.Logger.Error(err)
+		} else {
+			ctx.Set(jwt.RefreshKey, token.RefreshToken)
+			handler, _ := jwt.RefreshTokenHandler(ctx)
+			ctx.Logger.Info(handler)
+			ctx.JSON(http.StatusOK, token)
+		}
 	})
 	g.Any("/home", func(ctx *msgo.Context) {
 		var err error

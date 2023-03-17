@@ -3,7 +3,7 @@ package main
 import (
 	"errors"
 	"github.com/liyuanwu2020/msgo"
-	mslog "github.com/liyuanwu2020/msgo/mslog"
+	"github.com/liyuanwu2020/msgo/mslog"
 	"github.com/liyuanwu2020/msgo/mspool"
 	"github.com/liyuanwu2020/msgo/token"
 	"html/template"
@@ -45,7 +45,6 @@ func main() {
 	//先进后出
 	//g.Use(msgo.Logging, msgo.Recovery)
 	engine.Logger.Formatter = mslog.JsonFormat
-	//engine.Logger.SetLogPath("./logs")
 	engine.RegisterErrorHandler(func(err error) (int, any) {
 		switch e := err.(type) {
 		case *BlogResponse:

@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"github.com/liyuanwu2020/blog/service"
 	"github.com/liyuanwu2020/msgo"
 	"github.com/liyuanwu2020/msgo/mslog"
 	"github.com/liyuanwu2020/msgo/mspool"
@@ -25,6 +26,8 @@ type User struct {
 }
 
 func main() {
+	service.SaveUser()
+	return
 	//1.创建引擎
 	//1.1 创建上下文.参数处理
 	//2.添加模板函数 && 解析模板

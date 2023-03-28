@@ -1,16 +1,12 @@
 package main
 
 import (
-	"errors"
 	"github.com/liyuanwu2020/blog/service"
 	"github.com/liyuanwu2020/msgo"
 	"github.com/liyuanwu2020/msgo/mslog"
-	"github.com/liyuanwu2020/msgo/mspool"
 	"github.com/liyuanwu2020/msgo/token"
 	"html/template"
-	"log"
 	"net/http"
-	"sync"
 	"time"
 )
 
@@ -26,8 +22,6 @@ type User struct {
 }
 
 func main() {
-	service.SaveUser()
-	return
 	//1.创建引擎
 	//1.1 创建上下文.参数处理
 	//2.添加模板函数 && 解析模板
@@ -50,7 +44,7 @@ func main() {
 	engine.Logger.Formatter = mslog.JsonFormat
 	engine.RegisterErrorHandler(func(err error) (int, any) {
 		switch e := err.(type) {
-		case *BlogResponse:
+		case *service.BlogResponse:
 			return http.StatusOK, e.Response()
 		default:
 			return http.StatusInternalServerError, "Internal Server Error"
@@ -76,15 +70,15 @@ func main() {
 			d["userId"] = 100
 			return d, nil
 		}
-		token, err := jwt.LoginHandler(ctx)
+		t, err := jwt.LoginHandler(ctx)
 
 		if err != nil {
 			ctx.Logger.Error(err)
 		} else {
-			ctx.Set(jwt.RefreshKey, token.RefreshToken)
+			ctx.Set(jwt.RefreshKey, t.RefreshToken)
 			handler, _ := jwt.RefreshTokenHandler(ctx)
 			ctx.Logger.Info(handler)
-			ctx.JSON(http.StatusOK, token)
+			_ = ctx.JSON(http.StatusOK, t)
 		}
 	})
 	g.Any("/home", func(ctx *msgo.Context) {
@@ -92,7 +86,7 @@ func main() {
 		//业务主体
 		//user, err := login()
 		user := &User{
-			Name: "xiaoli",
+			Name: "小李",
 			Age:  20,
 		}
 		ctx.HandleWithError(http.StatusOK, user, err)
@@ -107,70 +101,4 @@ func main() {
 	engine.Logger.Info("engine start")
 	//engine.Run()
 	engine.RunTLS(":8088", "key/server.pem", "key/server.key")
-}
-
-type BlogResponse struct {
-	Success bool
-	Code    int
-	Data    any
-	Msg     string
-}
-
-type BlogNoDataError struct {
-	Success bool
-	Code    int
-	Msg     string
-}
-
-func (r *BlogResponse) Error() string {
-	return r.Msg
-}
-
-func (r *BlogResponse) Response() any {
-	if r.Data == nil {
-		return &BlogNoDataError{
-			Success: r.Success,
-			Code:    r.Code,
-			Msg:     r.Msg,
-		}
-	}
-	return r
-}
-
-func login() (*BlogResponse, error) {
-
-	pool, _ := mspool.NewPool(3)
-	t := time.Now().UnixMilli()
-	var wg sync.WaitGroup
-	wg.Add(4)
-	pool.Submit(func() {
-		time.Sleep(time.Second * 2)
-		log.Println("1")
-		wg.Done()
-	})
-	pool.Submit(func() {
-		defer wg.Done()
-		time.Sleep(time.Second * 2)
-		log.Println("2")
-		panic("oh no")
-	})
-	pool.Submit(func() {
-		time.Sleep(time.Second * 2)
-		log.Println("3")
-		wg.Done()
-	})
-	pool.Submit(func() {
-		time.Sleep(time.Second * 2)
-		log.Println("4")
-		wg.Done()
-	})
-	wg.Wait()
-	log.Printf("time: %v", time.Now().UnixMilli()-t)
-
-	return &BlogResponse{
-		Success: false,
-		Code:    1003,
-		Data:    nil,
-		Msg:     "ok",
-	}, errors.New("账号密码错误")
 }

@@ -1,8 +1,10 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/liyuanwu2020/micro.service.pb/go/user"
 	"github.com/liyuanwu2020/msgo/orm"
 	"log"
 	"net/url"
@@ -14,6 +16,23 @@ type User struct {
 	Age      int    `json:"age"`
 	Openid   string `json:"openid"`
 	Email    string `json:"email"`
+}
+
+type UserService struct {
+	user.Service
+}
+
+var times int
+
+func (s UserService) Search(context.Context, *user.UserRequest) (*user.UserResponse, error) {
+	times++
+	log.Printf("blog UserService run [%d] times \n", times)
+	name := "小明的副本"
+	return &user.UserResponse{
+		Id:       200,
+		Username: &name,
+		Area:     []string{"1009", "2009"},
+	}, nil
 }
 
 func CountUser() {

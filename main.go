@@ -10,7 +10,6 @@ import (
 	"github.com/liyuanwu2020/msgo/token"
 	"google.golang.org/grpc"
 	"html/template"
-	"log"
 	"net/http"
 	"time"
 )
@@ -28,21 +27,11 @@ type User struct {
 
 func main() {
 
-	nacosClient, nacosErr := register.CreateNacosClient()
+	nacos := register.MsNacosDefault()
+	nacosErr := nacos.RegisterService("user", "localhost", 9112)
 	if nacosErr != nil {
 		panic(nacosErr)
 	}
-	conf := register.NacosServiceConfig{
-		Ip:          "localhost",
-		Port:        9112,
-		ServiceName: "user",
-	}
-	registerService, nacosErr := register.NacosServiceRegister(nacosClient, conf)
-	if nacosErr != nil {
-		panic(nacosErr)
-	}
-	log.Println(registerService)
-
 	grpcServer, grpcErr := rpc.NewGrpcServer(":9112")
 	grpcServer.Register(func(g *grpc.Server) {
 		user.RegisterUserServiceServer(g, &service.UserService{})

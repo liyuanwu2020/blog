@@ -99,22 +99,6 @@ func main() {
 			_ = ctx.JSON(http.StatusOK, t)
 		}
 	})
-	g.Any("/home", func(ctx *msgo.Context) {
-		var err error
-		//业务主体
-		//user, err := login()
-		user := &User{
-			Name: "小李",
-			Age:  20,
-		}
-		ctx.HandleWithError(http.StatusOK, user, err)
-
-	}, func(handlerFunc msgo.HandlerFunc) msgo.HandlerFunc {
-		return func(ctx *msgo.Context) {
-			handlerFunc(ctx)
-			//mslog.Println("方法级别 MiddleHandler")
-		}
-	})
 
 	engine.Logger.Info("engine start")
 	//engine.Run()
